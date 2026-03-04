@@ -1,0 +1,509 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="fas fa-chart-line"></i> 水文数据可视化图表</h1>
+    <p class="text-muted">动态展示水库水文数据的可视化分析</p>
+
+    <!-- 控制面板 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="fas fa-sliders-h"></i> 图表控制面板</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">选择水库</label>
+                    <select class="form-select" id="reservoirSelect">
+                        <option value="青龙山水库" selected>青龙山水库</option>
+                        <!-- 动态加载其他水库 -->
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label">数据量</label>
+                    <select class="form-select" id="dataLimit">
+                        <option value="7">最近7条数据</option>
+                        <option value="15">最近15条数据</option>
+                        <option value="30">最近30条数据</option>
+                        <option value="0">最近7天数据</option>
+                    </select>
+                </div>
+                <div class="col-md-4 mb-3 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick="loadChartData()">
+                        <i class="fas fa-sync-alt"></i> 更新图表
+                    </button>
+                </div>
+            </div>
+
+            <!-- 统计信息 -->
+            <div class="row mt-3" id="statisticsInfo">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 正在加载统计数据...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图表容器 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-water"></i> 水位变化趋势图</h5>
+                </div>
+                <div class="card-body">
+                    <div id="waterLevelChart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0"><i class="fas fa-cloud-rain"></i> 降雨量变化趋势图</h5>
+                </div>
+                <div class="card-body">
+                    <div id="rainfallChart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-tint"></i> 流量变化趋势图</h5>
+                </div>
+                <div class="card-body">
+                    <div id="flowRateChart" style="width: 100%; height: 400px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据表格 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-table"></i> 原始数据表</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm" id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>时间</th>
+                            <th>水位(m)</th>
+                            <th>降雨量(mm)</th>
+                            <th>流量(m³/s)</th>
+                            <th>水库</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center">正在加载数据...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 导航按钮 -->
+    <div class="mt-4 text-center">
+        <a href="{{ url_for('show_data') }}" class="btn btn-primary">
+            <i class="fas fa-table"></i> 查看详细数据
+        </a>
+        <a href="{{ url_for('add_data') }}" class="btn btn-success">
+            <i class="fas fa-plus"></i> 添加新数据
+        </a>
+        <a href="{{ url_for('export_data') }}" class="btn btn-warning">
+            <i class="fas fa-download"></i> 导出数据
+        </a>
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-home"></i> 返回首页
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- ECharts 库 -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
+<script>
+    // 初始化图表
+    let waterLevelChart = echarts.init(document.getElementById('waterLevelChart'));
+    let rainfallChart = echarts.init(document.getElementById('rainfallChart'));
+    let flowRateChart = echarts.init(document.getElementById('flowRateChart'));
+
+    // 初始化空图表
+    function initEmptyCharts() {
+        const emptyOption = {
+            title: {
+                text: '正在加载数据...',
+                left: 'center',
+                top: 'center',
+                textStyle: {
+                    color: '#999',
+                    fontSize: 16
+                }
+            },
+            xAxis: { show: false },
+            yAxis: { show: false },
+            series: []
+        };
+
+        waterLevelChart.setOption(emptyOption);
+        rainfallChart.setOption(emptyOption);
+        flowRateChart.setOption(emptyOption);
+    }
+
+    // 加载水库列表
+    function loadReservoirList() {
+        fetch('/api/reservoir_list')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const select = document.getElementById('reservoirSelect');
+                    select.innerHTML = ''; // 清空现有选项
+
+                    data.data.forEach(reservoir => {
+                        const option = document.createElement('option');
+                        option.value = reservoir;
+                        option.textContent = reservoir;
+                        select.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('加载水库列表失败:', error);
+            });
+    }
+
+    // 加载统计数据
+    function loadStatistics(reservoir) {
+        fetch(`/api/statistics?reservoir=${encodeURIComponent(reservoir)}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const stats = data.data;
+                    const html = `
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">数据总量</h6>
+                                        <h4 class="text-primary">${stats.total_count}</h4>
+                                        <p class="small text-muted mb-0">条记录</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">水位范围</h6>
+                                        <h4 class="text-success">${stats.min_water_level} ~ ${stats.max_water_level}</h4>
+                                        <p class="small text-muted mb-0">平均: ${stats.avg_water_level}米</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">降雨量范围</h6>
+                                        <h4 class="text-info">${stats.min_rainfall} ~ ${stats.max_rainfall}</h4>
+                                        <p class="small text-muted mb-0">平均: ${stats.avg_rainfall}毫米</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="card bg-light">
+                                    <div class="card-body text-center">
+                                        <h6 class="card-title">流量范围</h6>
+                                        <h4 class="text-warning">${stats.min_flow_rate} ~ ${stats.max_flow_rate}</h4>
+                                        <p class="small text-muted mb-0">平均: ${stats.avg_flow_rate}m³/s</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-12">
+                                <p class="small text-muted mb-0">
+                                    <i class="fas fa-calendar-alt"></i> 
+                                    数据时间范围: ${stats.earliest_date ? stats.earliest_date.substring(0, 10) : '未知'} 
+                                    至 ${stats.latest_date ? stats.latest_date.substring(0, 10) : '未知'}
+                                </p>
+                            </div>
+                        </div>
+                    `;
+                    document.getElementById('statisticsInfo').innerHTML = html;
+                }
+            })
+            .catch(error => {
+                console.error('加载统计数据失败:', error);
+            });
+    }
+
+    // 加载图表数据
+    function loadChartData() {
+        const reservoir = document.getElementById('reservoirSelect').value;
+        const limit = document.getElementById('dataLimit').value;
+
+        // 显示加载状态
+        initEmptyCharts();
+        document.querySelector('#dataTable tbody').innerHTML =
+            '<tr><td colspan="5" class="text-center">正在加载数据...</td></tr>';
+
+        // 构建API URL
+        let url = `/api/chart_data?reservoir=${encodeURIComponent(reservoir)}`;
+        if (limit > 0) {
+            url += `&limit=${limit}`;
+        } else {
+            url += `&days=7`;
+        }
+
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    updateCharts(data.data);
+                    updateDataTable(data.data);
+                    loadStatistics(reservoir);
+                } else {
+                    alert('加载数据失败: ' + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('加载图表数据失败:', error);
+                alert('加载数据失败，请检查网络连接');
+            });
+    }
+
+    // 更新图表
+    function updateCharts(chartData) {
+        const timestamps = chartData.timestamps.map(ts => {
+            const date = new Date(ts);
+            return `${date.getMonth() + 1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2, '0')}`;
+        });
+
+        // 水位图表
+        waterLevelChart.setOption({
+            title: {
+                text: `${chartData.reservoir} - 水位变化趋势`,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function (params) {
+                    let result = params[0].axisValue + '<br/>';
+                    params.forEach(param => {
+                        result += `${param.marker} ${param.seriesName}: ${param.value}米<br/>`;
+                    });
+                    return result;
+                }
+            },
+            xAxis: {
+                type: 'category',
+                data: timestamps,
+                name: '时间',
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '水位(m)',
+                min: Math.min(...chartData.water_levels) * 0.95,
+                max: Math.max(...chartData.water_levels) * 1.05
+            },
+            series: [{
+                name: '水位',
+                type: 'line',
+                data: chartData.water_levels,
+                smooth: true,
+                lineStyle: {
+                    color: '#3498db',
+                    width: 3
+                },
+                itemStyle: {
+                    color: '#3498db'
+                },
+                areaStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0, color: 'rgba(52, 152, 219, 0.7)'
+                        }, {
+                            offset: 1, color: 'rgba(52, 152, 219, 0.1)'
+                        }]
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    data: [{
+                        yAxis: 106, // 预警线
+                        lineStyle: {
+                            color: '#e74c3c',
+                            type: 'dashed'
+                        },
+                        label: {
+                            formatter: '预警线: 106米',
+                            position: 'middle'
+                        }
+                    }]
+                }
+            }]
+        });
+
+        // 降雨量图表
+        rainfallChart.setOption({
+            title: {
+                text: `${chartData.reservoir} - 降雨量变化趋势`,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: timestamps,
+                name: '时间',
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '降雨量(mm)',
+                min: 0
+            },
+            series: [{
+                name: '降雨量',
+                type: 'bar',
+                data: chartData.rainfalls,
+                itemStyle: {
+                    color: {
+                        type: 'linear',
+                        x: 0,
+                        y: 0,
+                        x2: 0,
+                        y2: 1,
+                        colorStops: [{
+                            offset: 0, color: '#2ecc71'
+                        }, {
+                            offset: 1, color: '#27ae60'
+                        }]
+                    }
+                },
+                markLine: {
+                    silent: true,
+                    data: [{
+                        yAxis: 20, // 预警线
+                        lineStyle: {
+                            color: '#e74c3c',
+                            type: 'dashed'
+                        },
+                        label: {
+                            formatter: '预警线: 20mm',
+                            position: 'middle'
+                        }
+                    }]
+                }
+            }]
+        });
+
+        // 流量图表
+        flowRateChart.setOption({
+            title: {
+                text: `${chartData.reservoir} - 流量变化趋势`,
+                left: 'center'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            xAxis: {
+                type: 'category',
+                data: timestamps,
+                name: '时间',
+                axisLabel: {
+                    rotate: 45
+                }
+            },
+            yAxis: {
+                type: 'value',
+                name: '流量(m³/s)',
+                min: Math.min(...chartData.flow_rates) * 0.9
+            },
+            series: [{
+                name: '流量',
+                type: 'line',
+                data: chartData.flow_rates,
+                smooth: true,
+                lineStyle: {
+                    color: '#e74c3c',
+                    width: 3
+                },
+                itemStyle: {
+                    color: '#e74c3c'
+                },
+                markLine: {
+                    silent: true,
+                    data: [{
+                        yAxis: 50, // 预警线
+                        lineStyle: {
+                            color: '#f39c12',
+                            type: 'dashed'
+                        },
+                        label: {
+                            formatter: '预警线: 50m³/s',
+                            position: 'middle'
+                        }
+                    }]
+                }
+            }]
+        });
+    }
+
+    // 更新数据表格
+    function updateDataTable(chartData) {
+        const tbody = document.querySelector('#dataTable tbody');
+        let html = '';
+
+        for (let i = 0; i < chartData.timestamps.length; i++) {
+            const time = new Date(chartData.timestamps[i]);
+            const timeStr = `${time.getFullYear()}-${(time.getMonth() + 1).toString().padStart(2, '0')}-${time.getDate().toString().padStart(2, '0')} ${time.getHours().toString().padStart(2, '0')}:${time.getMinutes().toString().padStart(2, '0')}`;
+
+            html += `
+                <tr>
+                    <td>${timeStr}</td>
+                    <td><span class="badge bg-info">${chartData.water_levels[i]}</span></td>
+                    <td><span class="badge bg-success">${chartData.rainfalls[i]}</span></td>
+                    <td><span class="badge bg-warning">${chartData.flow_rates[i]}</span></td>
+                    <td>${chartData.reservoir}</td>
+                </tr>
+            `;
+        }
+
+        tbody.innerHTML = html || '<tr><td colspan="5" class="text-center">暂无数据</td></tr>';
+    }
+
+    // 页面加载完成后初始化
+    document.addEventListener('DOMContentLoaded', function () {
+        initEmptyCharts();
+        loadReservoirList();
+        loadChartData(); // 默认加载数据
+
+        // 窗口大小变化时重绘图表
+        window.addEventListener('resize', function () {
+            waterLevelChart.resize();
+            rainfallChart.resize();
+            flowRateChart.resize();
+        });
+    });
+</script>
+{% endblock %}

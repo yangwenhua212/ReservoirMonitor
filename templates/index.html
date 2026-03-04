@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="home-container">
+    <!-- 头部 -->
+    <div class="header">
+        <h1><i class="fas fa-water"></i> 水库水文数据监测可视化系统</h1>
+        <p class="subtitle">基于 Flask + ECharts + MySQL 技术的水文数据监测平台</p>
+    </div>
+
+    <!-- 欢迎区域 -->
+    <div class="welcome-box">
+        <h2><i class="fas fa-hand-wave"></i> 欢迎使用</h2>
+        <p>本系统是基于现代 Web 技术开发的水库水文数据监测平台，旨在实现水文数据的可视化管理和智能分析，为水库安全运行提供科学依据。</p>
+
+        {% if session.user_id %}
+        <p>
+            <i class="fas fa-user-check"></i>
+            欢迎回来<strong>{{ session.full_name or session.username }}</strong>！
+            {% if session.role == 'admin' %}
+            <span class="user-role admin-role">管理员</span>
+            {% else %}
+            <span class="user-role user-role-normal">普通用户</span>
+            {% endif %}
+        </p>
+        {% endif %}
+    </div>
+
+    <!-- 导航卡片 -->
+    <div class="nav-cards">
+        <div class="nav-card">
+            <div class="card-header">
+                <i class="fas fa-database"></i> 数据管理
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('test_db') }}" class="card-link">
+                    <i class="fas fa-plug"></i> 测试数据库连接
+                </a>
+                <a href="{{ url_for('show_data') }}" class="card-link">
+                    <i class="fas fa-table"></i> 查看水文数据表格
+                </a>
+                <a href="{{ url_for('import_data') }}" class="card-link">
+                    <i class="fas fa-upload"></i> 上传数据文件
+                </a>
+            </div>
+        </div>
+
+        <div class="nav-card">
+            <div class="card-header">
+                <i class="fas fa-chart-line"></i> 可视化分析
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('show_charts') }}" class="card-link">
+                    <i class="fas fa-chart-bar"></i> 查看数据可视化图表
+                </a>
+                <a href="{{ url_for('show_map') }}" class="card-link">
+                    <i class="fas fa-map-marked-alt"></i> 地理信息展示
+                </a>
+                <a href="{{ url_for('show_reports') }}" class="card-link">
+                    <i class="fas fa-chart-pie"></i> 统计分析报告
+                </a>
+            </div>
+        </div>
+
+        <div class="nav-card">
+            <div class="card-header">
+                <i class="fas fa-bell"></i> 监控预警
+            </div>
+            <div class="card-body">
+                <a href="{{ url_for('alert_rules_list') }}" class="card-link">
+                    <i class="fas fa-exclamation-triangle"></i> 预警规则设置
+                </a>
+                <a href="{{ url_for('alert_history') }}" class="card-link">
+                    <i class="fas fa-history"></i> 预警历史记录
+                </a>
+                <a href="{{ url_for('database_management') }}" class="card-link">
+                    <i class="fas fa-user-shield"></i> 系统安全管理
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 功能列表 -->
+    <div class="features">
+        <h2><i class="fas fa-cogs"></i> 系统主要功能</h2>
+        <ul class="feature-list">
+            <li class="feature-item">
+                <div class="feature-icon"><i class="fas fa-database"></i></div>
+                <div>
+                    <h3>水文数据管理</h3>
+                    <p>支持水位、降雨量、流量、水质等数据的录入、查询、修改和删除操作</p>
+                </div>
+            </li>
+            <li class="feature-item">
+                <div class="feature-icon"><i class="fas fa-chart-line"></i></div>
+                <div>
+                    <h3>数据可视化展示</h3>
+                    <p>使用 ECharts 实现数据的动态图表展示，支持折线图、柱状图、饼图等多种图表类型</p>
+                </div>
+            </li>
+            <li class="feature-item">
+                <div class="feature-icon"><i class="fas fa-bell"></i></div>
+                <div>
+                    <h3>智能预警系统</h3>
+                    <p>设置水位、降雨量等指标的预警阈值，实现异常数据的自动监测和预警通知</p>
+                </div>
+            </li>
+            <li class="feature-item">
+                <div class="feature-icon"><i class="fas fa-users"></i></div>
+                <div>
+                    <h3>用户权限管理</h3>
+                    <p>支持多用户登录和权限控制，不同角色用户具有不同的操作权限</p>
+                </div>
+            </li>
+            <li class="feature-item">
+                <div class="feature-icon"><i class="fas fa-file-export"></i></div>
+                <div>
+                    <h3>数据导出与报表</h3>
+                    <p>支持数据导出为 Excel、PDF 格式，自动生成统计分析报表</p>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <!-- 页脚 -->
+    <div class="footer">
+        <p><i class="fas fa-graduation-cap"></i> 毕业设计项目 | 基于 Flask/ECharts+MySQL 技术的水库水文数据监测可视化系统</p>
+        <p><i class="fas fa-university"></i> © 2026 广西外国语学院 数字科技学院 | 计算机科学与技术专业</p>
+        <p><i class="fas fa-user-graduate"></i> 设计者：杨文华 | 指导教师：许倩文</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // 添加简单的交互效果
+    document.addEventListener('DOMContentLoaded', function () {
+        // 为所有链接添加点击效果
+        const links = document.querySelectorAll('.card-link');
+        links.forEach(link => {
+            link.addEventListener('click', function (e) {
+                if (this.getAttribute('href') === '#') {
+                    e.preventDefault();
+                    alert('此功能正在开发中...');
+                }
+            });
+        });
+
+        // 动态显示当前时间
+        const updateTime = () => {
+            const now = new Date();
+            const timeStr = now.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+            const timeElement = document.createElement('div');
+            timeElement.className = 'current-time';
+            timeElement.style.cssText = 'text-align:center;color:#7f8c8d;font-size:0.9em;margin-top:10px;';
+            timeElement.innerHTML = `<i class="fas fa-clock"></i> 当前系统时间：${timeStr}`;
+
+            const footer = document.querySelector('.footer');
+            if (!document.querySelector('.current-time')) {
+                footer.appendChild(timeElement);
+            } else {
+                document.querySelector('.current-time').innerHTML = `<i class="fas fa-clock"></i> 当前系统时间：${timeStr}`;
+            }
+        };
+
+        updateTime();
+        setInterval(updateTime, 1000);
+    });
+</script>
+{% endblock %}

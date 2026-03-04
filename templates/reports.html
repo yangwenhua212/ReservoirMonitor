@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block title %}系统分析报告 - 水库监测系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1><i class="fas fa-chart-pie me-2"></i>系统分析报告</h1>
+    <p class="text-muted">基于当前数据库生成的综合统计分析报告。报告时间：{{ report.report_time }}</p>
+
+    <!-- 关键指标概览 -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-primary shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-5 text-primary">{{ report.total_reservoirs }}</h2>
+                    <p class="card-text"><i class="fas fa-water me-1"></i>监测水库总数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-success shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-5 text-success">{{ report.total_data_records }}</h2>
+                    <p class="card-text"><i class="fas fa-database me-1"></i>总数据记录数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-info shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-5 text-info">{{ report.total_days }}</h2>
+                    <p class="card-text"><i class="fas fa-calendar-alt me-1"></i>累计监测天数</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-warning shadow-sm h-100">
+                <div class="card-body text-center">
+                    <h2 class="display-5 text-warning">{{ report.high_water_alerts }}</h2>
+                    <p class="card-text"><i class="fas fa-exclamation-triangle me-1"></i>水位偏高预警次数</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 近期数据活动 -->
+    <div class="row">
+        <div class="col-lg-8 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-history me-2"></i>近期数据录入活动（最近7天）</h5>
+                </div>
+                <div class="card-body">
+                    {% if report.recent_activity %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th scope="col">水库名称</th>
+                                    <th scope="col">录入次数</th>
+                                    <th scope="col">最后记录时间</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for activity in report.recent_activity %}
+                                <tr>
+                                    <td>{{ activity[0] }}</td>
+                                    <td><span class="badge bg-primary">{{ activity[1] }}</span></td>
+                                    <td class="text-muted">{{ activity[2] | default('暂无', true) }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">最近一周暂无数据录入活动。</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- 报告说明 -->
+        <div class="col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-2"></i>报告说明</h5>
+                </div>
+                <div class="card-body">
+                    <p>本报告基于系统数据库实时生成，主要包含：</p>
+                    <ul>
+                        <li><strong>系统概览</strong>：水库与数据总量。</li>
+                        <li><strong>监测统计</strong>：累计监测时间跨度。</li>
+                        <li><strong>安全预警</strong>：水位异常触发次数。</li>
+                        <li><strong>操作活跃度</strong>：近期数据录入情况。</li>
+                    </ul>
+                    <div class="alert alert-info mt-3">
+                        <i class="fas fa-lightbulb me-2"></i>
+                        <small>提示：报告数据更新于每次页面刷新时。更详细的自定义分析可在“图表分析”页面进行。</small>
+                    </div>
+                    <a href="{{ url_for('show_charts') }}" class="btn btn-outline-primary btn-sm mt-2 w-100">
+                        <i class="fas fa-external-link-alt me-1"></i> 前往高级图表分析
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="row mt-4">
+        <div class="col-md-6 mb-2">
+            <a href="{{ url_for('export_data') }}" class="btn btn-outline-success w-100">
+                <i class="fas fa-file-export me-1"></i> 导出完整报告 (Excel)
+            </a>
+        </div>
+        <div class="col-md-6 mb-2">
+            <button onclick="window.print()" class="btn btn-outline-secondary w-100">
+                <i class="fas fa-print me-1"></i> 打印本页报告
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

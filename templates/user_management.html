@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="fas fa-users-cog"></i> 用户管理</h1>
+    <p class="text-muted">管理员可以管理所有用户账户</p>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">用户列表</h5>
+            <span class="badge bg-light text-dark">共 {{ users|length }} 个用户</span>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>用户名</th>
+                            <th>真实姓名</th>
+                            <th>邮箱</th>
+                            <th>角色</th>
+                            <th>注册时间</th>
+                            <th>最后登录</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user[0] }}</td>
+                            <td>
+                                {% if user[0] == session.user_id %}
+                                <span class="badge bg-info">当前用户</span>
+                                {% endif %}
+                                {{ user[1] }}
+                            </td>
+                            <td>{{ user[3] }}</td>
+                            <td>{{ user[2] }}</td>
+                            <td>
+                                {% if user[4] == 'admin' %}
+                                <span class="badge bg-danger">管理员</span>
+                                {% else %}
+                                <span class="badge bg-secondary">普通用户</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user[5] }}</td>
+                            <td>{{ user[6] or '从未登录' }}</td>
+                            <td>
+                                {% if user[0] != session.user_id %}
+                                <div class="btn-group btn-group-sm">
+                                    <button class="btn btn-outline-warning" data-user-id="{{ user[0] }}"
+                                        onclick="editUser(this)">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button class="btn btn-outline-danger" data-user-id="{{ user[0] }}"
+                                        data-user-name="{{ user[1] }}" onclick="deleteUser(this)">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                {% else %}
+                                <span class="text-muted small">不可操作</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    function deleteUser(button) {
+        const userId = button.getAttribute('data-user-id');
+        const username = button.getAttribute('data-user-name');
+
+        if (confirm(`确定要删除用户 "${username}" 吗？\n\n注意：只有未创建任何数据的用户才能被删除。`)) {
+            // 创建表单并提交
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.action = `/admin/delete_user/${userId}`;
+
+            // 添加CSRF令牌（如果需要）
+            const csrfToken = document.createElement('input');
+            csrfToken.type = 'hidden';
+            csrfToken.name = 'csrf_token';
+            csrfToken.value = '{{ csrf_token() if csrf_token else "" }}';
+            form.appendChild(csrfToken);
+
+            document.body.appendChild(form);
+            form.submit();
+        }
+    }
+
+    function editUser(button) {
+        const userId = button.getAttribute('data-user-id');
+        window.location.href = `/admin/edit_user/${userId}`;
+    }
+</script>
+{% endblock %}
+{% endblock %}

@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}水库地理分布 - 监测系统{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <h1><i class="fas fa-map-marked-alt"></i> 水库地理信息总览</h1>
+    <p class="text-muted">在地图上查看所有监测水库的分布位置。点击标记点可查看详情。</p>
+
+    <!-- 地图容器 -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-water"></i> 水库分布图</h5>
+            <div>
+                <span class="badge bg-light text-dark" id="mapInfo">正在加载...</span>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div id="reservoirMap" style="height: 600px; width: 100%; border-radius: 0 0 8px 8px;"></div>
+        </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="row mt-4">
+        <div class="col-md-4 mb-2">
+            <a href="{{ url_for('show_data') }}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-database"></i> 返回数据管理
+            </a>
+        </div>
+        <div class="col-md-4 mb-2">
+            <a href="{{ url_for('show_charts') }}" class="btn btn-outline-success w-100">
+                <i class="fas fa-chart-line"></i> 查看分析图表
+            </a>
+        </div>
+        <div class="col-md-4 mb-2">
+            <button class="btn btn-outline-info w-100" onclick="location.reload()">
+                <i class="fas fa-sync-alt"></i> 刷新地图
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 关键修改：使用完整的在线CDN链接，确保100%加载 -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+<!-- 地图功能脚本 -->
+<script>
+    // 1. 初始化地图，视图中心设为广西
+    const map = L.map('reservoirMap').setView([23.8, 108.8], 7);
+    console.log('地图初始化成功 (高德版)');
+
+    // 2. 关键修改：加载高德地图图层（国内访问快且稳定）
+    // 注意：这里使用的是“街道图”，你也可以尝试换成‘卫星图’(img_w)或‘路网图’(vec_w)
+    var urlTemplate = 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}';
+    L.tileLayer(urlTemplate, {
+        subdomains: ['1', '2', '3', '4'],
+        attribution: '© <a href="https://ditu.amap.com/">高德地图</a>',
+        maxZoom: 18
+    }).addTo(map);
+    console.log('高德地图底图加载完成');
+
+    // 从后端API获取水库数据并添加到地图
+    fetch('/api/reservoirs_with_location')
+        .then(response => response.json())
+        .then(data => {
+            console.log('接收到API数据：', data);
+            if (data.success) {
+                const reservoirs = data.data;
+                document.getElementById('mapInfo').textContent = `已加载 ${reservoirs.length} 个水库`;
+
+                reservoirs.forEach(reservoir => {
+                    if (reservoir.lat && reservoir.lng) {
+                        console.log(`正在添加标记：${reservoir.name}`);
+                        // 使用Leaflet默认图标
+                        const marker = L.marker([reservoir.lat, reservoir.lng]).addTo(map);
+
+                        marker.bindPopup(`
+                            <div style="min-width: 220px;">
+                                <h6><i class="fas fa-water"></i> <b>${reservoir.name}</b></h6>
+                                <hr class="my-2">
+                                <p class="mb-1"><i class="fas fa-map-marker-alt"></i> ${reservoir.location}</p>
+                                <p class="mb-1"><i class="fas fa-arrows-alt-v"></i> 正常水位: ${reservoir.normal_water_level} 米</p>
+                                <p class="mb-1"><i class="fas fa-tint"></i> 总库容: ${reservoir.capacity} 万m³</p>
+                                <div class="d-grid gap-2 mt-3">
+                                    <a href="/charts?reservoir=${encodeURIComponent(reservoir.name)}"
+                                       class="btn btn-sm btn-primary">
+                                        <i class="fas fa-chart-line"></i> 查看数据图表
+                                    </a>
+                                </div>
+                            </div>
+                        `);
+                    }
+                });
+                console.log('所有标记添加完毕');
+            } else {
+                console.error('API返回失败：', data.message);
+                document.getElementById('mapInfo').innerHTML = '<span class="text-danger">数据加载失败</span>';
+            }
+        })
+        .catch(error => {
+            console.error('请求API出错：', error);
+            document.getElementById('mapInfo').innerHTML = '<span class="text-danger">网络请求失败</span>';
+        });
+</script>
+{% endblock %}

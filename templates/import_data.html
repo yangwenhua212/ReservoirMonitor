@@ -1,0 +1,267 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="fas fa-upload"></i> 数据导入</h1>
+    <p class="text-muted">批量导入水文监测数据，支持Excel和CSV格式</p>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-file-upload"></i> 上传数据文件</h5>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div
+                        class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('import_data') }}" enctype="multipart/form-data">
+                        <div class="mb-4">
+                            <label class="form-label">选择文件 *</label>
+                            <input type="file" class="form-control" name="file" id="fileInput"
+                                accept=".xlsx,.xls,.csv,.txt" required>
+                            <div class="form-text">
+                                支持格式：Excel (.xlsx, .xls)、CSV (.csv, .txt)
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">水库名称 *</label>
+                            <select class="form-select" name="reservoir_name" required>
+                                <option value="">请选择水库</option>
+                                <option value="青龙山水库">青龙山水库</option>
+                                <option value="白龙山水库">白龙山水库</option>
+                                <option value="黑龙潭水库">黑龙潭水库</option>
+                                <option value="红石岩水库">红石岩水库</option>
+                                <option value="碧波湖水库">碧波湖水库</option>
+                            </select>
+                            <div class="form-text">
+                                如果文件中包含水库名称列，将使用文件中的数据
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">文件格式 *</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="file_type" id="excelFormat"
+                                    value="excel" checked>
+                                <label class="form-check-label" for="excelFormat">
+                                    Excel 格式 (需包含表头)
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="file_type" id="csvFormat"
+                                    value="csv">
+                                <label class="form-check-label" for="csvFormat">
+                                    CSV 格式 (逗号分隔，需包含表头)
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <strong>注意事项：</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>文件大小限制：5MB</li>
+                                <li>文件必须包含表头（列名）</li>
+                                <li>支持的列名：水位、降雨量、流量、水库名称、备注、监测时间</li>
+                                <li>前3列为必填项（水位、降雨量、流量）</li>
+                                <li>监测时间格式：YYYY-MM-DD HH:MM:SS</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('show_data') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times"></i> 取消
+                            </a>
+                            <button type="submit" class="btn btn-success" id="submitBtn">
+                                <i class="fas fa-upload"></i> 开始导入
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-history"></i> 最近导入记录</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>文件名</th>
+                                    <th>导入时间</th>
+                                    <th>导入记录</th>
+                                    <th>状态</th>
+                                </tr>
+                            </thead>
+                            <tbody id="importHistory">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">
+                                        暂无导入记录
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h6 class="mb-0"><i class="fas fa-file-download"></i> 下载模板</h6>
+                </div>
+                <div class="card-body">
+                    <p>下载数据导入模板，按照模板格式填写数据后导入。</p>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('download_template', format='excel') }}"
+                            class="btn btn-outline-primary mb-2">
+                            <i class="fas fa-file-excel"></i> 下载Excel模板
+                        </a>
+                        <a href="{{ url_for('download_template', format='csv') }}" class="btn btn-outline-info">
+                            <i class="fas fa-file-csv"></i> 下载CSV模板
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h6 class="mb-0"><i class="fas fa-columns"></i> 数据列说明</h6>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>列名</th>
+                                    <th>必填</th>
+                                    <th>说明</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><span class="badge bg-primary">水位</span></td>
+                                    <td>✓</td>
+                                    <td>水位高度，单位：米(m)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-success">降雨量</span></td>
+                                    <td>✓</td>
+                                    <td>24小时降雨量，单位：毫米(mm)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-warning">流量</span></td>
+                                    <td>✓</td>
+                                    <td>水库流量，单位：立方米/秒(m³/s)</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-info">水库名称</span></td>
+                                    <td>可选</td>
+                                    <td>如果不填，将使用上面选择的水库</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-secondary">备注</span></td>
+                                    <td>可选</td>
+                                    <td>数据备注信息</td>
+                                </tr>
+                                <tr>
+                                    <td><span class="badge bg-dark">监测时间</span></td>
+                                    <td>可选</td>
+                                    <td>格式：2025-01-01 12:00:00</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> 导入技巧</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>使用Excel模板可确保格式正确</li>
+                        <li>CSV文件使用UTF-8编码，避免中文乱码</li>
+                        <li>可以先导入少量数据测试格式</li>
+                        <li>如果导入失败，请检查数据格式和列名</li>
+                        <li>支持批量导入，单次最多1000条记录</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // 文件选择变化时更新文件类型选择
+    document.getElementById('fileInput').addEventListener('change', function (e) {
+        const fileName = this.files[0].name.toLowerCase();
+
+        if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
+            document.getElementById('excelFormat').checked = true;
+        } else if (fileName.endsWith('.csv') || fileName.endsWith('.txt')) {
+            document.getElementById('csvFormat').checked = true;
+        }
+    });
+
+    // 表单提交时显示加载状态
+    document.querySelector('form').addEventListener('submit', function () {
+        const submitBtn = document.getElementById('submitBtn');
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 导入中...';
+        submitBtn.disabled = true;
+    });
+
+    // 加载导入历史（示例）
+    function loadImportHistory() {
+        // 这里可以从后端API获取实际数据
+        // 暂时使用示例数据
+        const history = [
+            { filename: '数据_20250101.xlsx', time: '2025-01-01 10:30', records: 50, status: '成功' },
+            { filename: '水文数据.csv', time: '2025-01-01 09:15', records: 100, status: '成功' }
+        ];
+
+        const tbody = document.getElementById('importHistory');
+        if (history.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted">暂无导入记录</td></tr>';
+            return;
+        }
+
+        let html = '';
+        history.forEach(item => {
+            html += `
+                <tr>
+                    <td><i class="fas fa-file me-1"></i> ${item.filename}</td>
+                    <td>${item.time}</td>
+                    <td>${item.records} 条</td>
+                    <td><span class="badge bg-success">${item.status}</span></td>
+                </tr>
+            `;
+        });
+
+        tbody.innerHTML = html;
+    }
+
+    // 页面加载完成后执行
+    document.addEventListener('DOMContentLoaded', function () {
+        loadImportHistory();
+    });
+</script>
+{% endblock %}
+{% endblock %}

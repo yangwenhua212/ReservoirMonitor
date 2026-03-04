@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="fas fa-download"></i> 数据导出</h1>
+    <p class="text-muted">导出水文监测数据为Excel或CSV格式</p>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-database"></i> 导出所有数据</h5>
+                </div>
+                <div class="card-body">
+                    <form id="exportForm" action="#" method="GET">
+                        <div class="mb-3">
+                            <label class="form-label">选择水库</label>
+                            <select class="form-select" id="reservoirSelect" name="reservoir">
+                                <option value="">全部水库</option>
+                                <option value="青龙山水库">青龙山水库</option>
+                                <option value="白龙山水库">白龙山水库</option>
+                                <option value="黑龙潭水库">黑龙潭水库</option>
+                                <option value="红石岩水库">红石岩水库</option>
+                                <option value="碧波湖水库">碧波湖水库</option>
+                            </select>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">开始日期</label>
+                                <input type="date" class="form-control" id="startDate" name="start_date">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">结束日期</label>
+                                <input type="date" class="form-control" id="endDate" name="end_date">
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>说明：</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>不选择日期将导出所有数据</li>
+                                <li>Excel格式包含多个工作表：原始数据、数据统计、数据汇总</li>
+                                <li>CSV格式只包含原始数据</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="button" class="btn btn-success me-2" onclick="exportData('excel')">
+                                <i class="fas fa-file-excel"></i> 导出为Excel
+                            </button>
+                            <button type="button" class="btn btn-info" onclick="exportData('csv')">
+                                <i class="fas fa-file-csv"></i> 导出为CSV
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-chart-line"></i> 导出图表数据</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">导出当前图表页面显示的数据，适合用于图表分析。</p>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('export_charts_data') }}" class="btn btn-outline-success">
+                            <i class="fas fa-file-csv"></i> 导出图表数据 (CSV)
+                        </a>
+                        <a href="{{ url_for('show_charts') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-line"></i> 前往图表页面
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-warning text-white">
+                    <h5 class="mb-0"><i class="fas fa-bell"></i> 导出预警数据</h5>
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">导出预警规则和预警历史记录。</p>
+
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('export_alerts') }}" class="btn btn-outline-warning">
+                            <i class="fas fa-file-excel"></i> 导出预警数据 (Excel)
+                        </a>
+                        <a href="{{ url_for('alert_history') }}" class="btn btn-outline-info">
+                            <i class="fas fa-history"></i> 查看预警历史
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header bg-secondary text-white">
+            <h6 class="mb-0"><i class="fas fa-info-circle"></i> 导出说明</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-file-excel fa-2x text-success"></i>
+                        <h6 class="mt-2">Excel 格式</h6>
+                        <p class="small text-muted">适合数据分析，包含多个工作表</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-file-csv fa-2x text-info"></i>
+                        <h6 class="mt-2">CSV 格式</h6>
+                        <p class="small text-muted">通用格式，适合导入其他系统</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-database fa-2x text-primary"></i>
+                        <h6 class="mt-2">数据内容</h6>
+                        <p class="small text-muted">包含所有字段，支持中文</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('show_data') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> 返回数据列表
+        </a>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // 设置默认日期（最近7天）
+    function setDefaultDates() {
+        const today = new Date();
+        const lastWeek = new Date(today);
+        lastWeek.setDate(today.getDate() - 7);
+
+        document.getElementById('startDate').value = lastWeek.toISOString().split('T')[0];
+        document.getElementById('endDate').value = today.toISOString().split('T')[0];
+    }
+
+    // 导出数据
+    function exportData(format) {
+        const form = document.getElementById('exportForm');
+        const reservoir = document.getElementById('reservoirSelect').value;
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        let url = '';
+
+        if (format === 'excel') {
+            url = '/export/excel';
+        } else if (format === 'csv') {
+            url = '/export/csv';
+        }
+
+        // 构建查询参数
+        let params = [];
+        if (reservoir) params.push(`reservoir=${encodeURIComponent(reservoir)}`);
+        if (startDate) params.push(`start_date=${startDate}`);
+        if (endDate) params.push(`end_date=${endDate}`);
+
+        if (params.length > 0) {
+            url += '?' + params.join('&');
+        }
+
+        // 打开导出链接
+        window.location.href = url;
+    }
+
+    // 页面加载完成后设置默认日期
+    document.addEventListener('DOMContentLoaded', function () {
+        setDefaultDates();
+
+        // 添加水库列表动态加载
+        fetch('/api/reservoir_list')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const select = document.getElementById('reservoirSelect');
+                    // 清空除了第一个选项之外的所有选项
+                    while (select.options.length > 1) {
+                        select.remove(1);
+                    }
+
+                    // 添加从API获取的水库
+                    data.data.forEach(reservoir => {
+                        const option = document.createElement('option');
+                        option.value = reservoir;
+                        option.textContent = reservoir;
+                        select.appendChild(option);
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('加载水库列表失败:', error);
+            });
+    });
+</script>
+{% endblock %}
+{% endblock %}

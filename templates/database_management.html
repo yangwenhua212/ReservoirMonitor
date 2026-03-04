@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="fas fa-database"></i> 数据库管理</h1>
+    <p class="text-muted">监控和管理数据库性能</p>
+
+    <!-- 统计卡片 -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-table"></i> 数据总量</h5>
+                    <h2>{{ data_count }}</h2>
+                    <p class="mb-0">条水文数据</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-water"></i> 水库数量</h5>
+                    <h2>{{ reservoir_count }}</h2>
+                    <p class="mb-0">个监测水库</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-users"></i> 用户数量</h5>
+                    <h2>{{ user_count }}</h2>
+                    <p class="mb-0">个系统用户</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-white">
+                <div class="card-body">
+                    <h5><i class="fas fa-exclamation-triangle"></i> 预警规则</h5>
+                    <h2>{{ rule_count }}</h2>
+                    <p class="mb-0">条预警规则</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据库表信息 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-dark text-white">
+            <h5 class="mb-0"><i class="fas fa-table"></i> 数据库表信息</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>表名</th>
+                            <th>行数</th>
+                            <th>大小(MB)</th>
+                            <th>创建时间</th>
+                            <th>更新时间</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for table in tables %}
+                        <tr>
+                            <td><strong>{{ table[0] }}</strong></td>
+                            <td>{{ "{:,}".format(table[1]) if table[1] else 0 }}</td>
+                            <td>{{ table[2] }}</td>
+                            <td>{{ table[3] }}</td>
+                            <td>{{ table[4] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数据时间范围 -->
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="fas fa-calendar-alt"></i> 数据时间范围</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="alert alert-secondary">
+                        <i class="fas fa-clock"></i>
+                        <strong>最早数据：</strong>
+                        {% if date_range[0] %}
+                        {{ date_range[0].strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% else %}
+                        暂无数据
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="alert alert-secondary">
+                        <i class="fas fa-clock"></i>
+                        <strong>最新数据：</strong>
+                        {% if date_range[1] %}
+                        {{ date_range[1].strftime('%Y-%m-%d %H:%M:%S') }}
+                        {% else %}
+                        暂无数据
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理操作 -->
+    <div class="card shadow-sm">
+        <div class="card-header bg-warning">
+            <h5 class="mb-0"><i class="fas fa-tools"></i> 数据库管理操作</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <form action="{{ url_for('optimize_db') }}" method="POST">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-cogs"></i> 优化数据库
+                        </button>
+                        <small class="form-text text-muted">优化表结构和索引，提高查询性能</small>
+                    </form>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <a href="{{ url_for('test_db') }}" class="btn btn-info w-100">
+                        <i class="fas fa-plug"></i> 测试连接
+                    </a>
+                    <small class="form-text text-muted">测试数据库连接是否正常</small>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <button class="btn btn-outline-secondary w-100" onclick="location.reload()">
+                        <i class="fas fa-sync-alt"></i> 刷新统计
+                    </button>
+                    <small class="form-text text-muted">刷新页面获取最新数据</small>
+                </div>
+            </div>
+
+            <div class="alert alert-warning mt-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>注意：</strong>
+                <ul class="mb-0 mt-2">
+                    <li>数据库优化操作可能需要一些时间，请耐心等待</li>
+                    <li>优化期间数据库性能可能会暂时下降</li>
+                    <li>建议在系统空闲时进行优化操作</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+            <i class="fas fa-home"></i> 返回首页
+        </a>
+    </div>
+</div>
+{% endblock %}

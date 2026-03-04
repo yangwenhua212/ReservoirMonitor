@@ -1,0 +1,373 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Microsoft YaHei', Arial, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+/* 修复：主页容器 */
+.home-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    margin-top: 20px;
+    /* 添加顶部间距，避免被导航栏遮挡 */
+}
+
+/* 头部样式 */
+.header {
+    background: linear-gradient(90deg, #3498db, #2c3e50);
+    color: white;
+    padding: 40px 20px;
+    text-align: center;
+    border-radius: 10px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.header .subtitle {
+    font-size: 1.2em;
+    opacity: 0.9;
+}
+
+/* 欢迎区域 */
+.welcome-box {
+    background: white;
+    padding: 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    border-left: 5px solid #3498db;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.welcome-box h2 {
+    color: #2c3e50;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+}
+
+.welcome-box p {
+    color: #5a6c7d;
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 15px;
+}
+
+/* 欢迎按钮和消息样式 */
+.welcome-buttons {
+    margin-top: 15px;
+}
+
+.welcome-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #3498db;
+    color: white;
+    text-decoration: none;
+    border-radius: 5px;
+    margin-right: 15px;
+    transition: background 0.3s;
+}
+
+.welcome-btn:hover {
+    background: #2980b9;
+    color: white;
+    text-decoration: none;
+}
+
+.welcome-message {
+    background-color: #d4edda;
+    padding: 15px;
+    border-radius: 5px;
+    border-left: 4px solid #28a745;
+    color: #155724;
+    margin-top: 15px;
+}
+
+.user-role {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 15px;
+    font-size: 0.8em;
+    margin-left: 10px;
+}
+
+.admin-role {
+    background-color: #dc3545;
+    color: white;
+}
+
+.user-role-normal {
+    background-color: #6c757d;
+    color: white;
+}
+
+/* 导航卡片 */
+.nav-cards {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    margin-bottom: 40px;
+}
+
+.nav-card {
+    flex: 1;
+    min-width: 300px;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.nav-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.card-header {
+    background: #3498db;
+    color: white;
+    padding: 20px;
+    font-size: 1.3em;
+    font-weight: bold;
+}
+
+.card-body {
+    padding: 25px;
+}
+
+/* 导航卡片链接（全新样式，彻底解决对齐） */
+.card-link {
+    display: flex;
+    align-items: center;
+    /* 垂直居中，消除上下偏差 */
+    background: #f8f9fa;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 5px;
+    color: #2c3e50;
+    text-decoration: none;
+    transition: all 0.3s;
+    border-left: 4px solid #3498db;
+    min-height: 54px;
+}
+
+/* 新增：纯固定宽度图标容器（关键！兜底占位） */
+.icon-container {
+    width: 24px;
+    /* 固定宽度，永不变化 */
+    height: 24px;
+    /* 固定高度，保持视觉统一 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* 让图标在容器内居中，消除自身留白差异 */
+    margin-right: 12px;
+    /* 容器和文字的间距，固定不变 */
+    flex-shrink: 0;
+    /* 禁止容器被挤压，彻底锁定占位 */
+}
+
+/* 图标样式简化，只负责美观，不影响对齐 */
+.icon-container i.fas {
+    font-size: 18px;
+}
+
+
+
+/* 精准选中卡片内的图标，替代直接给 i 标签设置样式，提高优先级 */
+.card-link>i.fas {
+    display: inline-block;
+    /* 固化图标占位 */
+    width: 24px;
+    height: 24px;
+    /* 新增固定高度，确保图标上下左右占位一致 */
+    text-align: center;
+    margin-right: 12px;
+    /* 去掉 !important，用精准选择器提高优先级，避免样式冲突 */
+    font-size: 18px;
+    flex-shrink: 0;
+    /* 关键：禁止图标容器收缩，确保占位固定，文字部分自然对齐 */
+}
+
+.card-link:hover {
+    background: #3498db;
+    color: white;
+    transform: translateX(5px);
+    text-decoration: none;
+}
+
+/* 文字部分样式（保持原有功能，不修改） */
+.card-link span {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 功能列表 */
+.features {
+    background: white;
+    border-radius: 10px;
+    padding: 30px;
+    margin-bottom: 40px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.features h2 {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #eee;
+    font-size: 1.8em;
+}
+
+.feature-list {
+    list-style: none;
+}
+
+.feature-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+}
+
+.feature-item:last-child {
+    border-bottom: none;
+}
+
+.feature-icon {
+    width: 40px;
+    height: 40px;
+    background: #3498db;
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.2em;
+    flex-shrink: 0;
+}
+
+.feature-content h3 {
+    color: #2c3e50;
+    margin-bottom: 5px;
+    font-size: 1.3em;
+}
+
+.feature-content p {
+    color: #5a6c7d;
+    line-height: 1.6;
+}
+
+/* 页脚 */
+.footer {
+    text-align: center;
+    padding: 20px;
+    color: #7f8c8d;
+    font-size: 0.9em;
+    border-top: 1px solid #eee;
+    margin-top: 40px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.footer p {
+    margin-bottom: 10px;
+}
+
+.footer p:last-child {
+    margin-bottom: 0;
+}
+
+.footer i {
+    margin-right: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .header h1 {
+        font-size: 2em;
+    }
+
+    .nav-cards {
+        flex-direction: column;
+    }
+
+    .nav-card {
+        min-width: 100%;
+    }
+
+    .feature-item {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .feature-icon {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+}
+
+/* 修复：导航栏用户头像样式 */
+.user-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+/* 修复：下拉菜单样式 */
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* 修复：主内容区间距 */
+main.container {
+    padding-top: 20px;
+}
+
+/* 修复：消息提示框 */
+.alert {
+    border-radius: 8px;
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: #28a745;
+}
+
+.alert-info {
+    border-left-color: #17a2b8;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}

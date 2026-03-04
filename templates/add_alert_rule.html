@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> 添加预警规则</h5>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div
+                        class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('add_alert_rule') }}">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label class="form-label">规则名称 *</label>
+                                <input type="text" class="form-control" name="rule_name" placeholder="例如：水位过高预警"
+                                    required>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">监测参数 *</label>
+                                <select class="form-select" name="parameter_type" required>
+                                    <option value="">选择参数类型</option>
+                                    <option value="water_level">水位 (米)</option>
+                                    <option value="rainfall">降雨量 (毫米)</option>
+                                    <option value="flow_rate">流量 (m³/s)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">最小值</label>
+                                <input type="number" step="0.1" class="form-control" name="min_value"
+                                    placeholder="例如：100.0 (低于此值触发)">
+                                <small class="text-muted">留空表示不设下限</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">最大值</label>
+                                <input type="number" step="0.1" class="form-control" name="max_value"
+                                    placeholder="例如：110.0 (高于此值触发)">
+                                <small class="text-muted">留空表示不设上限</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">预警信息 *</label>
+                            <textarea class="form-control" name="alert_message" rows="3"
+                                placeholder="输入预警信息，例如：水位超过警戒线，请立即检查！" required></textarea>
+                            <small class="text-muted">当监测数据超出阈值时显示此信息</small>
+                        </div>
+
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle"></i>
+                            <strong>阈值设置说明：</strong>
+                            <ul class="mb-0 mt-2">
+                                <li>最小值：当监测数据低于此值时触发预警</li>
+                                <li>最大值：当监测数据高于此值时触发预警</li>
+                                <li>两者都设置：当监测数据超出此范围时触发预警</li>
+                                <li>至少需要设置一个阈值（最小值或最大值）</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('alert_rules_list') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> 返回列表
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save"></i> 保存规则
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-lightbulb"></i> 预警规则示例</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6>水位过高预警</h6>
+                                    <p class="small text-muted">参数：水位</p>
+                                    <p class="small text-muted">阈值：≥ 106.0米</p>
+                                    <p class="small text-muted">预警信息：水位超过106米，请注意！</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6>降雨量过大预警</h6>
+                                    <p class="small text-muted">参数：降雨量</p>
+                                    <p class="small text-muted">阈值：≥ 20.0毫米</p>
+                                    <p class="small text-muted">预警信息：降雨量超过20mm，请注意防范！</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-light">
+                                <div class="card-body">
+                                    <h6>水位正常范围</h6>
+                                    <p class="small text-muted">参数：水位</p>
+                                    <p class="small text-muted">阈值：100.0 ~ 105.0米</p>
+                                    <p class="small text-muted">预警信息：水位超出正常范围！</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

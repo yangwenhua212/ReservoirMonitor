@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1><i class="fas fa-bell"></i> 预警规则管理</h1>
+    <p class="text-muted">设置和管理水库水文数据的预警规则</p>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="fas fa-list"></i> 预警规则列表</h5>
+            <div>
+                <a href="{{ url_for('add_alert_rule') }}" class="btn btn-sm btn-light">
+                    <i class="fas fa-plus"></i> 添加规则
+                </a>
+                <a href="{{ url_for('alert_history') }}" class="btn btn-sm btn-warning">
+                    <i class="fas fa-history"></i> 预警历史
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>规则名称</th>
+                            <th>监测参数</th>
+                            <th>阈值范围</th>
+                            <th>预警信息</th>
+                            <th>状态</th>
+                            <th>创建者</th>
+                            <th>创建时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rule in rules %}
+                        <tr>
+                            <td>
+                                <strong>{{ rule[1] }}</strong>
+                                {% if rule[0] <= 2 %} <span class="badge bg-info ms-1">示例</span>
+                                    {% endif %}
+                            </td>
+                            <td>
+                                {% if rule[2] == 'water_level' %}
+                                <span class="badge bg-info">水位</span>
+                                {% elif rule[2] == 'rainfall' %}
+                                <span class="badge bg-success">降雨量</span>
+                                {% elif rule[2] == 'flow_rate' %}
+                                <span class="badge bg-warning">流量</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if rule[3] is not none and rule[4] is not none %}
+                                {{ rule[3] }} ~ {{ rule[4] }}
+                                {% elif rule[3] is not none %}
+                                ≥ {{ rule[3] }}
+                                {% elif rule[4] is not none %}
+                                ≤ {{ rule[4] }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ rule[5][:30] }}{% if rule[5]|length > 30 %}...{% endif
+                                    %}</span>
+                            </td>
+                            <td>
+                                {% if rule[6] %}
+                                <span class="badge bg-success">启用</span>
+                                {% else %}
+                                <span class="badge bg-secondary">禁用</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ rule[9] or '系统' }}</td>
+                            <!-- 修复这里：将 rule[8][:16] 改为格式化显示 -->
+                            <td>
+                                {% if rule[8] %}
+                                {% if rule[8] is string %}
+                                {{ rule[8] }}
+                                {% else %}
+                                {{ rule[8].strftime('%Y-%m-%d %H:%M') }}
+                                {% endif %}
+                                {% else %}
+                                -
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('edit_alert_rule', rule_id=rule[0]) }}"
+                                        class="btn btn-outline-primary">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <form method="POST" action="{{ url_for('toggle_alert_rule', rule_id=rule[0]) }}"
+                                        style="display: inline;">
+                                        <button type="submit"
+                                            class="btn btn-outline-{% if rule[6] %}warning{% else %}success{% endif %}">
+                                            <i class="fas fa-{% if rule[6] %}ban{% else %}check{% endif %}"></i>
+                                        </button>
+                                    </form>
+                                    <form method="POST" action="{{ url_for('delete_alert_rule', rule_id=rule[0]) }}"
+                                        style="display: inline;" onsubmit="return confirm('确定要删除这个预警规则吗？')">
+                                        <button type="submit" class="btn btn-outline-danger">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not rules %}
+            <div class="text-center py-5">
+                <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                <p class="text-muted">暂无预警规则，请添加第一条预警规则</p>
+                <a href="{{ url_for('add_alert_rule') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> 添加预警规则
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <a href="{{ url_for('index') }}" class="btn btn-outline-primary w-100">
+                <i class="fas fa-home"></i> 返回首页
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('add_alert_rule') }}" class="btn btn-outline-success w-100">
+                <i class="fas fa-plus"></i> 添加新规则
+            </a>
+        </div>
+        <div class="col-md-4">
+            <a href="{{ url_for('alert_history') }}" class="btn btn-outline-warning w-100">
+                <i class="fas fa-history"></i> 查看预警历史
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

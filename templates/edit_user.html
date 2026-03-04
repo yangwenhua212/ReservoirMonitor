@@ -1,0 +1,114 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-user-edit"></i> 编辑用户信息</h5>
+                    <a href="{{ url_for('user_management') }}" class="btn btn-sm btn-light">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </a>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div
+                        class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('edit_user', user_id=user[0]) }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">用户名</label>
+                                <input type="text" class="form-control" value="{{ user[1] }}" readonly>
+                                <small class="text-muted">用户名创建后不可修改</small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">用户ID</label>
+                                <input type="text" class="form-control" value="{{ user[0] }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">真实姓名</label>
+                                <input type="text" class="form-control" name="full_name" value="{{ user[3] or '' }}"
+                                    placeholder="请输入真实姓名">
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">电子邮箱</label>
+                                <input type="email" class="form-control" name="email" value="{{ user[2] or '' }}"
+                                    placeholder="请输入电子邮箱">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">用户角色 *</label>
+                                <select class="form-select" name="role" required>
+                                    <option value="user" {% if user[4]=='user' %}selected{% endif %}>普通用户</option>
+                                    <option value="admin" {% if user[4]=='admin' %}selected{% endif %}>管理员</option>
+                                </select>
+                                <small class="text-muted">
+                                    {% if user[0] == session.user_id %}
+                                    注意：您不能将自己的角色修改为非管理员
+                                    {% endif %}
+                                </small>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">注册时间</label>
+                                <input type="text" class="form-control" value="{{ user[5] }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label">最后登录时间</label>
+                                <input type="text" class="form-control" value="{{ user[6] or '从未登录' }}" readonly>
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                            <a href="{{ url_for('user_management') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-times"></i> 取消
+                            </a>
+                            <button type="submit" class="btn btn-warning">
+                                <i class="fas fa-save"></i> 保存修改
+                            </button>
+                            <a href="{{ url_for('reset_user_password', user_id=user[0]) }}"
+                                class="btn btn-outline-primary ms-2">
+                                <i class="fas fa-key"></i> 重置密码
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> 注意事项</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>用户名创建后不可修改</li>
+                        <li>管理员角色拥有所有系统权限</li>
+                        <li>普通用户只能查看和管理自己创建的数据</li>
+                        <li>重置密码后，用户需要使用新密码登录</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-plus-circle"></i> 添加水文数据</h5>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                    {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" action="{{ url_for('add_data') }}">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">水库名称 *</label>
+                                <select class="form-select" name="reservoir_name" required>
+                                    <option value="">请选择水库</option>
+                                    <option value="青龙山水库">青龙山水库</option>
+                                    <option value="白龙山水库">白龙山水库</option>
+                                    <option value="黑龙潭水库">黑龙潭水库</option>
+                                    <option value="红石岩水库">红石岩水库</option>
+                                    <option value="碧波湖水库">碧波湖水库</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">监测时间</label>
+                                <input type="datetime-local" class="form-control" name="timestamp"
+                                    value="{{ now.strftime('%Y-%m-%dT%H:%M') if now else '' }}">
+                                <small class="text-muted">留空则使用当前时间</small>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">水位 (米) *</label>
+                                <input type="number" step="0.1" class="form-control" name="water_level"
+                                    placeholder="例如：105.5" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">降雨量 (毫米) *</label>
+                                <input type="number" step="0.1" class="form-control" name="rainfall"
+                                    placeholder="例如：12.3" required>
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label class="form-label">流量 (m³/s) *</label>
+                                <input type="number" step="0.1" class="form-control" name="flow_rate"
+                                    placeholder="例如：45.6" required>
+                            </div>
+                        </div>
+
+                        <!-- <div class="mb-3">
+                            <label class="form-label">备注信息</label>
+                            <textarea class="form-control" name="remarks" rows="3"
+                                placeholder="可输入数据相关的备注信息..."></textarea>
+                        </div> -->
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('show_data') }}" class="btn btn-outline-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> 返回数据列表
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> 保存数据
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card mt-4 shadow-sm">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0"><i class="fas fa-info-circle"></i> 数据说明</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>水位：水库水位高度，单位为米(m)</li>
+                        <li>降雨量：24小时累计降雨量，单位为毫米(mm)</li>
+                        <li>流量：水库出库流量，单位为立方米每秒(m³/s)</li>
+                        <li>带 * 号的字段为必填项</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
