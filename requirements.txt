@@ -1,0 +1,13 @@
+# Flask 核心框架
+flask>=2.3.3
+# 生产级服务器（Railway 必需）
+gunicorn>=21.2.0
+# 数据库相关（适配你的 MySQL/SQLite）
+pymysql>=1.1.0
+flask-sqlalchemy>=3.1.1
+# 其他可能用到的依赖（根据你项目补充）
+flask-login>=0.6.3
+flask-wtf>=1.2.1
+pandas>=2.1.0
+matplotlib>=3.8.0
+numpy>=1.26.0
